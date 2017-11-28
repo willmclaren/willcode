@@ -1,0 +1,1 @@
+/Users/will/bin/png2gif.pl
