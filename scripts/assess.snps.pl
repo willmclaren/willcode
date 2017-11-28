@@ -1,0 +1,1 @@
+/Users/will/bin/assess.snps.pl
