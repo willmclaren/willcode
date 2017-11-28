@@ -1,1 +1,0 @@
-/Users/will/bin/getRareHets.pl

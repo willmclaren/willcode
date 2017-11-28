@@ -1,1 +1,0 @@
-/Users/will/bin/count.block.genotypes.pl

@@ -1,1 +1,0 @@
-/Users/will/bin/impute2ped.pl

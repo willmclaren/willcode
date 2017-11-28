@@ -1,1 +1,0 @@
-/Users/will/bin/ped2vcf.pl

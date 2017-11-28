@@ -1,1 +1,0 @@
-/Users/will/bin/ethnic.table.pl

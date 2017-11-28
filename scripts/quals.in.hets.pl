@@ -1,1 +1,0 @@
-/Users/will/bin/quals.in.hets.pl

@@ -1,1 +1,0 @@
-/Users/will/bin/hapmap2geno.pl

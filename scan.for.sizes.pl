@@ -1,1 +1,0 @@
-/Users/will/bin/scan.for.sizes.pl

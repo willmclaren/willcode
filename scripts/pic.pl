@@ -1,1 +1,0 @@
-/Users/will/bin/pic.pl

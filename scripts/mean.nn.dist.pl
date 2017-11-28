@@ -1,1 +1,0 @@
-/Users/will/bin/mean.nn.dist.pl

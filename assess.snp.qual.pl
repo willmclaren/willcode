@@ -1,1 +1,0 @@
-/Users/will/bin/assess.snp.qual.pl

@@ -1,1 +1,0 @@
-/Users/will/bin/compare.tables.pl

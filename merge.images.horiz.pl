@@ -1,1 +1,0 @@
-/Users/will/bin/merge.images.horiz.pl
