@@ -1,0 +1,27 @@
+[user]
+	name = William McLaren
+	email = wm2@ebi.ac.uk
+[alias]
+  cp = cherry-pick
+  st = status -s
+  cl = clone
+  ci = commit
+  co = checkout
+  br = branch
+  diff = diff --word-diff
+  dc = diff --cached
+  ls = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cgreen\\ [%cn]" --decorate
+  ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cgreen\\ [%cn]" --decorate --numstat
+  ld = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --date=relative
+[github]
+        user = willmclaren
+        token = 281125dafc6d55c8ec831de95396d708
+[color]
+        ui = true
+        status = auto
+        branch = auto
+[core]
+        excludesfile = /homes/wm2/.gitignore_global
+        editor = vi
+[pack]
+        threads = 4
