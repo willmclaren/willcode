@@ -1,1 +1,7 @@
-/Users/will/bin/fix.plink.output.pl
+#!/usr/bin/perl
+
+while(<>) {
+	s/^ +//g;
+	s/ +/\t/g;
+	print;
+}
