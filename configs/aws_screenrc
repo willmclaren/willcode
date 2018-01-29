@@ -6,7 +6,7 @@ caption always "%{= Wk}%-w%{= Bw}%n %t%{-}%+w %-="
 
 vbell off
 
-term xterm
+term screen-256color
 
 termcapinfo xterm* ti@:te@
 
