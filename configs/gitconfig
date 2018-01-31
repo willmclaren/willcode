@@ -1,6 +1,6 @@
 [user]
 	name = William McLaren
-	email = wm2@ebi.ac.uk
+	email = will.mclaren@globalgenecorp.com
 [alias]
   cp = cherry-pick
   st = status -s
@@ -21,7 +21,6 @@
         status = auto
         branch = auto
 [core]
-        excludesfile = /homes/wm2/.gitignore_global
         editor = vi
 [pack]
         threads = 4
