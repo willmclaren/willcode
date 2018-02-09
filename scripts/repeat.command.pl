@@ -57,7 +57,7 @@ foreach $letter(@letters) {
 		@nnn = split /\-/, $val;
 		
 		for $a($nnn[0]..$nnn[-1]) {
-			$rpts[$n] .= " $a";
+			$rpts[$n] .= "\t$a";
 			$rpts[$n] =~ s/^\s+//g;
 			$n++;
 		}
@@ -85,7 +85,7 @@ JOB: while(1) {
 
 	if($list) {
 		# shift off the next set of values; if none left, exit the loop
-		@args = split /\s+/, shift @rpts or last JOB;
+		@args = split /\t/, shift @rpts or last JOB;
 		
 		# for each of the variables we are going to use, set the values to be used in this repeat in the %vals hash
 		foreach $var(sort keys %vars) {
