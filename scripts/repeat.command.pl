@@ -1,133 +1,181 @@
 #!/usr/bin/perl
 
-# this variable is 0 by default - when set to 1 it tells the script
-# that we don't want to manually input values using STDIN
-$list = 0;
+use strict;
+use warnings;
 
-# a list of command line arguments / flags that are followed by a value
-%args_with_vals = (
-	'l' => 1,
-	'a' => 1,
-	'b' => 1,
-	'c' => 1,
-	'd' => 1,
-	'e' => 1,
-	'f' => 1,
-	'g' => 1,
-	'fill' => 1,
+$| = 1;
+
+use Getopt::Long;
+use Pod::Usage;
+
+my $config = {};
+
+# parse command line
+GetOptions(
+  $config,
+
+  # displays help message
+  'help|h',
+  
+  # variables a-g
+  (map {$_.'=s'} ("a".."g")),
+
+  # or provide list
+  'list|l=s',
+
+  # 0-pad
+  'pad|p=i',
 );
 
-@letters = qw/a b c d e f g h i j k/;
+pod2usage(1) if $config->{help} or !@ARGV;
 
-# process the flags
-while($ARGV[0] =~ /^\-/) {
-	$arg = shift @ARGV;
-	$arg =~ s/^\-+//g;
-	
-	# get the next element from the array if this flag is meant to be followed by a value
-	$val = ($args_with_vals{$arg} ? shift @ARGV : 1);
-	
-	# special case for -l - this arguments specifies a file containing input variables to be used
-	if($arg =~ /^l/) {
-		open IN, $val or die "Could not read from list file $val\n";
-		while(<IN>) {
-			chomp;
-			
-			# each set of values is stored as a whitespace-delimited string in the array @rpts
-			push @rpts, $_;
-			
-			$list = 1;
-		}
-		close IN;
-	}
-	
-	else {
-		$args{$arg} = $val;
-	}
+run_reps($config, join(" ", @ARGV), get_reps($config));
+
+sub get_reps {
+  my $config = shift;
+
+  my @reps;
+  my @letters = "a".."z";
+
+  if(my $file = $config->{list}) {
+    open IN, $file or die "Could not read from list file $file: $!\n";
+    while(<IN>) {
+      chomp;
+      my @bits = split("\t", $_);
+
+      my %rep = map { ($letters[$_] x 3) => $bits[$_] } (0..$#bits);
+      
+      push @reps, \%rep;
+    }
+    close IN;
+  }
+
+  foreach my $letter(grep {defined($config->{$_})} @letters) {
+    my $n = 0;
+
+    # deal with e.g. 1-10,12,14-17
+    foreach my $val(split /\,/, $config->{$letter}) {
+      my @nnn = split /\-/, $val;
+      die("ERROR: Incorrect format \"$val\"\n") if @nnn > 2;
+      
+      for my $a($nnn[0]..$nnn[-1]) {
+        $reps[$n]->{$letter x 3} = $a;
+        $n++;
+      }
+    }
+  }
+
+  return \@reps;
 }
 
-# go through the variables e.g. aaa, bbb to see if any have been specified on the command line
-foreach $letter(@letters) {
-	next unless $args{$letter};
-	
-	$n = 0;
-	
-	# deal with e.g. 1-10,12,14-17
-	foreach $val(split /\,/, $args{$letter}) {
-		@nnn = split /\-/, $val;
-		
-		for $a($nnn[0]..$nnn[-1]) {
-			$rpts[$n] .= "\t$a";
-			$rpts[$n] =~ s/^\s+//g;
-			$n++;
-		}
-	}
-	
-	$list = 1;
+sub run_reps {
+  my ($config, $command, $reps) = @_;
+
+  # record which variable names we need to use
+  my %vars;
+  foreach my $letter("a".."z") {
+    my $var = $letter x 3;  
+    $vars{$var} = 1 if $command =~ /$var/;
+  }
+
+  my $have_reps = scalar @$reps;
+
+  die("ERROR: No variables or valid options provided\n") unless %vars || $have_reps;
+
+  # tell the user what we're assuming the command to be (debug)
+  print STDERR "Command to be run: $command\n\n";
+
+  # set up a loop to go through each of the sets/repeats
+  while(1) {
+
+    my $rep = {};
+
+    if(@$reps) {
+      $rep = shift @$reps;
+    }
+    
+    # enter values manually via STDIN
+    # NB user has to manually CTRL-C out of the script in this method
+    else {
+      foreach my $var(sort keys %vars) {
+        print "Value for $var: ";
+        $rep->{$var} = <STDIN>;
+        chomp $rep->{$var};
+      }
+    }
+    
+    # copy the command string so we can sed it
+    my $ex = $command;
+    
+    # do the sed-ing substitution for each variable
+    foreach my $var(keys %$rep) {
+      if($config->{pad} && $rep->{$var} =~ /\d+/) {
+        my $v = $rep->{$var};
+        
+        while(length($v) < $config->{pad}) {
+          $v = "0".$v;
+        }
+        
+        $rep->{$var} = $v;
+      }
+
+      my $val = $rep->{$var};
+    
+      $ex =~ s/$var/$val/g;
+    }
+    
+    # print out the command we're about to run
+    print STDERR "Executing command: $ex\n";
+    
+    # run the command using the fancy ` thing - allows us to get back the output directly from the command
+    open CMD, "$ex |";
+    while(<CMD>) {
+      print $_;
+    }
+    
+    # confirm it finished and print the output (if there was any)
+    print STDERR "done\n\n";
+
+    last if $have_reps && scalar @$reps == 0;
+  }
 }
 
-# the rest of @ARGV is then assumed to be the command to be run
-$command = join " ", @ARGV;
+__END__
 
-# tell the user what we're assuming the command to be (debug)
-print "Command to be run:\n$command\n\n";
+=head1 NAME
 
-# look at the command to see which variable names appear in it
-foreach $letter(@letters) {
-	$var = $letter.$letter.$letter;
-	
-	# record which variable names we need to use
-	$vars{$var} = 1 if $command =~ /$var/;
-}
+repeat.command.pl
 
-# set up a loop to go through each of the sets/repeats
-JOB: while(1) {
+=head1 SYNOPSIS
 
-	if($list) {
-		# shift off the next set of values; if none left, exit the loop
-		@args = split /\t/, shift @rpts or last JOB;
-		
-		# for each of the variables we are going to use, set the values to be used in this repeat in the %vals hash
-		foreach $var(sort keys %vars) {
-			$vals{$var} = (scalar @args ? shift @args : $var);
-		}
-	}
-	
-	# enter values manually via STDIN
-	# NB user has to manually CTRL-C out of the script in this method
-	else {
-		foreach $var(sort keys %vars) {
-			print "Value for $var: ";
-			$vals{$var} = <STDIN>;
-			chomp $vals{$var};
-		}
-	}
-	
-	# copy the command string so we can sed it
-	$ex = $command;
-	
-	# do the sed-ing substitution for each variable
-	foreach $var(keys %vals) {
-		if($args{'fill'} && $vals{$var} =~ /\d+/) {
-			$v = $vals{$var};
-			
-			while(length($v) < $args{'fill'}) {
-				$v = "0".$v;
-			}
-			
-			$vals{$var} = $v;
-		}
-	
-		$ex =~ s/$var/$vals{$var}/g;
-	}
-	
-	# print out the command we're about to run
-	print "$ex\n";
-	print "Executing command...";
-	
-	# run the command using the fancy ` thing - allows us to get back the output directly from the command
-	$output = `$ex`;
-	
-	# confirm it finished and print the output (if there was any)
-	print "done\n\n".($output ? "Output:\n$output\n" : "");
-}
+repeat.command.pl [options] [command]
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-a, -b, -c ... -g>
+
+Give a value or list of values to substitute in for e.g. "aaa" in
+the command. Can be a comma-separated list, and include ranges
+e.g. 1-10
+
+=item B<--list>
+
+Specify a file with variable substitutions. Each line in the
+file corresponds to one iteration of executing the command.
+The list file should be tab-delimited; each column corresponds
+in turn to "aaa", "bbb" etc.
+
+=item B<--pad>
+
+0-pad numerical values.
+
+=back
+
+=head1 DESCRIPTION
+
+B<repeat.command.pl> repeats the given command substituting
+in values for the variables given as e.g. "aaa", "bbb".
+
+=cut
