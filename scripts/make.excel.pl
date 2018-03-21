@@ -27,7 +27,7 @@ print "Writing to file $filename\n";
 foreach $file(@ARGV) {
 	open IN, $file;
 	
-	$name = (split /\//, $file)[-1];
+	$name = substr((split /\//, $file)[-1], 0, 30);
 	
 	$sheets{$file} = $workbook->add_worksheet($name);
 	

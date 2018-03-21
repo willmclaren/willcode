@@ -14,7 +14,7 @@ while($ARGV[0] =~ /^\-/) {
 	$args{$arg} = ($args_with_vals{$arg} ? shift @ARGV : 1);
 }
 
-$col = ($args{'c'} ? $args{'c'} : 1);
+$col = (defined($args{'c'}) ? $args{'c'} : 1);
 $col--;
 
 open IN, shift @ARGV;

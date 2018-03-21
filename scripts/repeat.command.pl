@@ -23,6 +23,9 @@ GetOptions(
   # or provide list
   'list|l=s',
 
+  # or manual entry
+  'manual|m',
+
   # 0-pad
   'pad|p=i',
 );
@@ -80,7 +83,7 @@ sub run_reps {
 
   my $have_reps = scalar @$reps;
 
-  die("ERROR: No variables or valid options provided\n") unless %vars || $have_reps;
+  die("ERROR: No variables or valid options provided\n") unless $have_reps || $config->{manual};
 
   # tell the user what we're assuming the command to be (debug)
   print STDERR "Command to be run: $command\n\n";
@@ -96,7 +99,7 @@ sub run_reps {
     
     # enter values manually via STDIN
     # NB user has to manually CTRL-C out of the script in this method
-    else {
+    elsif($config->{manual}) {
       foreach my $var(sort keys %vars) {
         print "Value for $var: ";
         $rep->{$var} = <STDIN>;
@@ -160,12 +163,16 @@ Give a value or list of values to substitute in for e.g. "aaa" in
 the command. Can be a comma-separated list, and include ranges
 e.g. 1-10
 
-=item B<--list>
+=item B<--list|-l>
 
 Specify a file with variable substitutions. Each line in the
 file corresponds to one iteration of executing the command.
 The list file should be tab-delimited; each column corresponds
 in turn to "aaa", "bbb" etc.
+
+=item B<--manual|-m>
+
+Enter values manually when prompted for each loop.
 
 =item B<--pad>
 
